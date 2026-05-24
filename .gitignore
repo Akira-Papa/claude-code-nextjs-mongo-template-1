@@ -1,0 +1,43 @@
+# 依存
+node_modules/
+.pnp.*
+.yarn/*
+
+# Next.js
+.next/
+out/
+build/
+dist/
+next-env.d.ts
+
+# 環境変数(秘密)。.env.example はコミットする
+.env
+.env.local
+.env*.local
+
+# テスト/カバレッジ
+coverage/
+playwright-report/
+test-results/
+.playwright/
+
+# ログ・キャッシュ
+*.log
+npm-debug.log*
+pnpm-debug.log*
+.turbo/
+.cache/
+*.tsbuildinfo
+
+# OS / エディタ
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# install.sh が取り込む外部スキル(各自のライセンス。テンプレ本体には含めない)
+.claude/skills/**/_external/
+
+# Vercel
+.vercel/

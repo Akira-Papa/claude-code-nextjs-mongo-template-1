@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "x-akirapapa-watch",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd /Users/funakoshiakira/workspace/x-akirapapa-watch-1 && npm run dev"],
+      "port": 3000,
+      "autoPort": true
+    }
+  ]
+}

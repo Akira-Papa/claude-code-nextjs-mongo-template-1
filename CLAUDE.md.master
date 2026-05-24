@@ -1,0 +1,86 @@
+# プロジェクト規約(Claude Code 用)
+
+> このファイルは配置時にプロジェクトルートの `CLAUDE.md` へリネームして使う。
+> Claude は毎セッションこれを読む。横断ルールの詳細は `.claude/rules/` を参照。
+
+## スタック(変更時は要相談)
+
+- Node 22 / pnpm / Next.js 16(App Router・Turbopack・Server Components デフォルト)
+- TypeScript strict / Tailwind v4 + shadcn/ui
+- MongoDB Atlas + Mongoose 8.x + Zod
+- 認証: Better Auth(or Auth.js v5)/ テスト: Vitest + Playwright / デプロイ: Vercel
+- AI 連携: AI SDK 6(任意)
+
+## 最優先の原則
+
+1. **型安全 > 速さ**: コンパイルが通っても型が緩ければ未完成とみなす。
+2. **境界で検証**: 外部から来る値(API 入力・env・DB 応答)は必ず Zod を通す。
+3. **既存パターン優先**: 新規実装の前に `examples/` と既存コードを探す。
+4. **破壊的操作は確認**: DB 削除・force push・本番設定変更は実行前に必ず確認。
+
+---
+
+## コード全般(必守)
+
+- ❌ `any` 型禁止 → `unknown` で受けて型ガードで絞る。
+- ❌ `// @ts-ignore` / `// @ts-expect-error` 安易な使用禁止(理由コメント必須かつレビュー対象)。
+- ❌ `export default` 禁止 → named export を強制(リファクタ耐性・grep 容易性のため)。
+- ❌ `console.log` 直書き禁止 → logger 経由。
+- ❌ シークレットを `.env.example` 以外に書かない。
+- ✅ Zod でランタイム境界(API 入力・env・DB レスポンス)を必ず検証。
+- ✅ 関数・変数は英語、ドキュメント/コミット本文は日本語可。
+
+## Next.js(必守)
+
+- ✅ Server Component がデフォルト。`'use client'` は state/イベント/ブラウザ API が要る箇所のみ。
+- ✅ 画像は `next/image`、フォントは `next/font`(任意フォント直 import 禁止)。
+- ✅ 各ルートに `generateMetadata` で title / OG を設定。
+- ❌ Edge Runtime で Node 専用 API(`fs`・`crypto` の Node 実装等)禁止。
+- ❌ `revalidate` と `cache: 'no-store'` の同時指定禁止(矛盾する)。
+- ✅ Server Action は `'use server'` + 入力 Zod 検証 + 認可チェックをセットで。
+
+## MongoDB / Mongoose(必守)
+
+- ✅ 主要クエリフィールドにインデックスを張る(`_id` 以外)。
+- ✅ 複合インデックスは **ESR ルール**(Equality → Sort → Range)順。
+- ✅ 新規クエリは `.explain('executionStats')` で `IXSCAN` を確認。`COLLSCAN` は赤信号。
+- ✅ 読み取り専用クエリは Mongoose の `.lean()` を使う。
+- ✅ ユーザー入力は Zod で型強制してから query に渡す。
+- ❌ `find({ ...req.body })` のような spread 禁止(NoSQL Injection)。
+- ❌ admin / readWrite 過剰権限ロールでアプリ接続禁止。本番は read-only を基本に。
+- ❌ 接続文字列のハードコード禁止(`.env.local` から読む)。
+
+## デザイン(必守)
+
+- ❌ **紫グラデ + Inter + 平凡な等間隔グリッドカード**の「いかにも AI 生成」な UI 禁止。
+- ✅ UI 作成・改善時は `frontend-design-house` スキルの起動条件を満たせば必ず参照。
+- ✅ コンポーネントは自作前に shadcn/ui を探す。
+- ✅ アクセシビリティ: コントラスト AA / focus-visible / 適切な aria を必須とする。
+
+## Git(必守)
+
+- ❌ `main` / `master` ブランチの直接編集禁止(`branch-guard.sh` が警告)。
+- ❌ `git push --force`(および `-f`)禁止。必要時はユーザー確認を取る。
+- ✅ Conventional Commits を強制(`/commit-smart` で生成)。
+- ✅ コミットは論理単位で分割。無関係な変更を混ぜない。
+
+---
+
+## ワークフローの基本
+
+- 大きめタスクは「計画 → 実装 → テスト → レビュー」の順で進める。
+- 不明点は推測で埋めず、一度だけ確認する。
+- 変更後は型チェック・lint・関連テストを通してから完了とする。
+- 設計判断をしたら `architecture-patterns/decision-records/` に ADR を残す。
+
+## スキル / コマンドの使い分け
+
+- 専門領域の作業は対応する **スキル**(`.claude/skills/`)が自動起動する。
+- 定型操作は **スラッシュコマンド**(`/dev` `/test` `/security-audit` `/design-pass` 等)。
+- 重い独立作業は **サブエージェント**(`.claude/agents/`)に委譲する。
+
+## Hooks(自動で効く安全網)
+
+- 破壊的 Bash・シークレット混入・NoSQL Injection パターンは Hooks がブロックする。
+- フォーマット / lint / 関連テストは保存時に自動実行される。
+- Hooks に止められたら、回避ではなく原因を直す。
